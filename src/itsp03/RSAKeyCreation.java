@@ -3,6 +3,7 @@
  */
 package itsp03;
 
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,7 +68,8 @@ public class RSAKeyCreation {
 		 
         File pubKeyFile = new File(inhaber+".pub");
         File privKeyFile = new File(inhaber+".prv");
-        FileOutputStream out;
+        DataOutputStream dosPub = new DataOutputStream(new FileOutputStream(pubKeyFile));
+        DataOutputStream dosPriv = new DataOutputStream(new FileOutputStream(privKeyFile));
         
 		//Keypair erzeugen
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -76,32 +78,37 @@ public class RSAKeyCreation {
        
         PrivateKey privKey = keyPair.getPrivate();
         PublicKey pubKey = keyPair.getPublic();
-        //X509-Format
-//      byte[] publicKey = keyGen.genKeyPair().getPublic().getEncoded();
-        X509EncodedKeySpec x509Encoded = new X509EncodedKeySpec(pubKey.getEncoded());
-        out = new FileOutputStream(pubKeyFile);
-        out.write(String.valueOf(inhaber.length()).getBytes());
-        out.write(System.getProperty("line.separator").getBytes());
-        out.write(inhaber.getBytes());
-        out.write(System.getProperty("line.separator").getBytes());
-        out.write(String.valueOf(pubKey.toString().length()).getBytes());
-        out.write(System.getProperty("line.separator").getBytes());
-        out.write(x509Encoded.getEncoded());
-        out.flush();
-        out.close();
+		
+        byte[] inhaberBytes = inhaber.getBytes();
+        byte[] pubKeyBytes = pubKey.getEncoded();
+        byte[] privKeyBytes = privKey.getEncoded();
+        
+        dosPub.writeInt(inhaberBytes.length);
+        dosPub.write(inhaberBytes);
+        dosPub.writeInt(pubKeyBytes.length);
+        dosPub.write(pubKeyBytes);
+        dosPub.flush();
+        dosPub.close();
+        
+        dosPriv.writeInt(inhaberBytes.length);
+        dosPriv.write(inhaberBytes);
+        dosPriv.writeInt(privKeyBytes.length);
+        dosPriv.write(privKeyBytes);
+        dosPub.flush();
+        dosPub.close();
         
         //PKCS#8
-        PKCS8EncodedKeySpec pkcs8Encoded = new PKCS8EncodedKeySpec(privKey.getEncoded());
-        out = new FileOutputStream(privKeyFile);
-        out.write(String.valueOf(inhaber.length()).getBytes());
-        out.write(System.getProperty("line.separator").getBytes());
-        out.write(inhaber.getBytes());
-        out.write(System.getProperty("line.separator").getBytes());
-        out.write(String.valueOf(pubKey.toString().length()).getBytes());
-        out.write(System.getProperty("line.separator").getBytes());
-        out.write(pkcs8Encoded.getEncoded());
-        out.flush();
-        out.close();
+//        PKCS8EncodedKeySpec pkcs8Encoded = new PKCS8EncodedKeySpec(privKey.getEncoded());
+//        out = new FileOutputStream(privKeyFile);
+//        out.write(String.valueOf(inhaber.length()).getBytes());
+//        out.write(System.getProperty("line.separator").getBytes());
+//        out.write(inhaber.getBytes());
+//        out.write(System.getProperty("line.separator").getBytes());
+//        out.write(String.valueOf(pubKey.toString().length()).getBytes());
+//        out.write(System.getProperty("line.separator").getBytes());
+//        out.write(pkcs8Encoded.getEncoded());
+//        out.flush();
+//        out.close();
 	}
 
 }

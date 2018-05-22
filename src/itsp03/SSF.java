@@ -4,6 +4,7 @@
 package itsp03;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,7 +29,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * 
@@ -47,7 +47,7 @@ public class SSF {
 		SSF ssf = new SSF();
 //		System.out.println(ssf.readPubKey("Mueller.pub"));
 //		System.out.println(ssf.readPrivKey("Mueller.prv"));
-//		System.out.println(ssf.generateKeyForAES());
+//		System.out.println(ssf.generateSecretKeyForAES());
 //		try {
 //			System.out.println("SIGN: "+ssf.generateSignature(ssf.readPrivKey("Mueller.prv")));
 //		} catch (SignatureException e) {
@@ -67,26 +67,31 @@ public class SSF {
 	 * @param file
 	 * @return
 	 */
-	@SuppressWarnings("deprecation")
 	public PrivateKey readPrivKey(String file){
 		PrivateKey privKey = null;
-		File filePriv = new File(file);
+//		File filePriv = new File(file);
 		KeyFactory kf;
+		
+		byte[] inhaberBytes = null;
+		byte[] privKeyBytes = null;
 		
 		try {
 			//Lesen des privaten RSA-Keys
 			
-			DataInputStream dis = new DataInputStream(new FileInputStream(filePriv));
-			String inhaberLaenge = dis.readLine();
-			String inhaberName = dis.readLine();
-			String keyLaenge = dis.readLine();
+			DataInputStream dis = new DataInputStream(new FileInputStream(file));
+			//Länge des InhaberNamens
+			int len = dis.readInt();
+			inhaberBytes = new byte[len];
+			dis.read(inhaberBytes);
+			//Key-Länge
+			len = dis.readInt();
+			privKeyBytes = new byte[len];
+			dis.read(privKeyBytes);
 			
-			byte[] encodedPrivKey = new byte[(int)filePriv.length()];
-			dis.read(encodedPrivKey);
 		    dis.close();
 		    
 			//Key generieren
-			PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(encodedPrivKey);
+			PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(privKeyBytes);
 			kf = KeyFactory.getInstance("RSA");
 			privKey = kf.generatePrivate(privKeySpec);		
 		   				
@@ -105,21 +110,27 @@ public class SSF {
 	@SuppressWarnings("deprecation")
 	public PublicKey readPubKey(String file){
 		PublicKey pubKey = null;
-		File filePub = new File(file);	
+//		File filePub = new File(file);	
 		KeyFactory kf;	
+		byte[] inhaberBytes = null;
+		byte[] keyPubBytes = null;
 		
 		try {
-			DataInputStream dis = new DataInputStream(new FileInputStream(filePub));
-			String inhaberLaenge = dis.readLine();
-			String inhaberName = dis.readLine();
-			String keyLaenge = dis.readLine();
-
+			DataInputStream dis = new DataInputStream(new FileInputStream(file));
 			
-			byte[] encodedPubKey = new byte[(int) filePub.length()];
-			dis.read(encodedPubKey);				
+			//Länge des InhaberNamens
+			int len = dis.readInt();
+			//InhaberBytes
+			inhaberBytes = new byte[len];
+			dis.read(inhaberBytes);
+			//Länge des Keys
+			len = dis.readInt();			
+			//Key-Bytes
+			keyPubBytes = new byte[len];
+			dis.read(keyPubBytes);			
 	       
 			dis.close();					
-			X509EncodedKeySpec ks = new X509EncodedKeySpec(encodedPubKey);
+			X509EncodedKeySpec ks = new X509EncodedKeySpec(keyPubBytes);
 			kf = KeyFactory.getInstance("RSA");
 			pubKey = kf.generatePublic(ks);
 			
@@ -136,16 +147,16 @@ public class SSF {
 	 * @return
 	 */
 	public SecretKey generateSecretKeyForAES(){
-		KeyGenerator keyGen;
-		SecretKey key = null;
+		SecretKey secKey = null;
+		KeyGenerator keyGen = null;
 		try {
 			keyGen = KeyGenerator.getInstance("AES");
-			keyGen.init(256);
-			key = keyGen.generateKey();
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		return key;		
+		keyGen.init(256);
+		secKey = keyGen.generateKey();
+		return secKey;		
 	}
 	/**
 	 * Erzeugt eine Signatur für den geheimen Schlüssel aus generateKeyForAES()
@@ -155,26 +166,17 @@ public class SSF {
 	 * @return
 	 * @throws SignatureException 
 	 */
-	public byte[] generateSignature(PrivateKey key) throws SignatureException{
+	public Signature generateSignature(PrivateKey key) throws SignatureException{
 //		privaten RSA_Schlüssel
 		Signature sign = null;
 		try {
 			sign = Signature.getInstance("SHA512withRSA");
 			sign.initSign(key);
 			
-			//save signature in a file
-			byte[] signBytes = sign.sign();
-			FileOutputStream fos = new FileOutputStream("sign");
-			fos.write(signBytes);
-			fos.close();
-			
-		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
 			e.printStackTrace();
 		}
-		
-		return sign.sign();
+		return sign;
 	}
 	/**
 	 * Verschlüsselung des geheimen Schlüssels (aus generateKeyForAES)
@@ -203,31 +205,57 @@ public class SSF {
 		}
 		return null;
 	}
-	public void readAndEncryptData(String fileSender, String fileReceiver, String file, String resultFile){
-		Cipher cipher;
-		File encodedFile = new File(resultFile);
+	public void readAndEncryptData(String privKeyFile, String pubKeyFile, String originalFile, String resultFile){
+		File file = new File(originalFile);
+		Cipher cipher = null;
 		//Einlesen der Datei
 		try {
-			File dataFile = new File(file);
-			DataInputStream dis = new DataInputStream(new FileInputStream(dataFile));
-			byte[] dataBytes = new byte[(int) dataFile.length()];
+			DataInputStream dis = new DataInputStream(new FileInputStream(file));
+			byte[] dataBytes = new byte[(int) file.length()];
 			dis.read(dataBytes);
 			dis.close();
 			
-			cipher = Cipher.getInstance("AES/CTR/NoPadding");
+			PrivateKey privKey = readPrivKey(privKeyFile);
+			PublicKey pubKey = readPubKey(pubKeyFile);
+			
+			byte[] signatureBytes = null;
+			
+			cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
 			SecretKey secKey = generateSecretKeyForAES();
+			
 			String algoParam = secKey.getAlgorithm();
 			
 			//Erzeugen des encodierten geheimen Schlüssels
-			byte[] encodedSecKey = encodeSecretKey(generateSecretKeyForAES(), readPubKey(fileReceiver));
+			byte[] encodedSecKey = encodeSecretKey(secKey, pubKey);
 			cipher.init(Cipher.ENCRYPT_MODE, secKey);
+//			byte[] encryptData = cipher.update(dataBytes);
+			byte[] encryptData = cipher.doFinal(dataBytes);
+			
 //			cipher.doFinal(encodedSecKey);
-//			SecretKeySpec secKSpec =
 			
-			byte[] signature = generateSignature(readPrivKey(fileReceiver));
-			
-			writeDataToFile(encodedFile, encodedSecKey, signature, algoParam, cipher.doFinal(dataBytes));
+			Signature signature = Signature.getInstance("SHA512withRSA");
+			signature.initSign(privKey);
+			signature.update(encryptData);
+			signatureBytes = signature.sign();
+//			writeDataToFile(encodedFile, encodedSecKey, signatureBytes, algoParam, encryptData);
 		
+			DataOutputStream dos = new DataOutputStream(new FileOutputStream(resultFile));
+			dos.writeInt(encodedSecKey.length);
+			//Verschlüsselter geheimer Schlüssel
+			dos.write(encodedSecKey);
+			//Länge der SIgnatur des geheimen Schlüssels
+			dos.writeInt(signatureBytes.length);
+			//Signatur des geheimen Schlüssels
+			dos.write(signatureBytes);
+			//Länge der algorithmischen Parameter des geheimen Schlüssels
+			dos.writeInt(algoParam.length());
+			//Algor. Parameter des geheimen Schlüssels
+			dos.write(algoParam.getBytes());
+			//Verschlüsselte Dateidaten
+			dos.write(encryptData);
+			
+			dos.close();
+			
 		} catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
@@ -242,20 +270,20 @@ public class SSF {
 
 	private void writeDataToFile(File resultFile, byte[] encodedSecKey,byte[] signature, String algoParam, byte[] encodedData) {
 		try {
-			FileOutputStream fos = new FileOutputStream(resultFile);
-			fos.write(String.valueOf(encodedSecKey.length).getBytes());
+			DataOutputStream dos = new DataOutputStream(new FileOutputStream(resultFile));
+			dos.writeInt(encodedSecKey.length);
 			//Verschlüsselter geheimer Schlüssel
-			fos.write(encodedSecKey);
+			dos.write(encodedSecKey);
 			//Länge der SIgnatur des geheimen Schlüssels
-			fos.write(signature.length);
+			dos.writeInt(signature.length);
 			//Signatur des geheimen Schlüssels
-			fos.write(signature);
+			dos.write(signature);
 			//Länge der algorithmischen Parameter des geheimen Schlüssels
-			fos.write(algoParam.length());
+			dos.writeInt(algoParam.length());
 			//Algor. Parameter des geheimen Schlüssels
-			fos.write(algoParam.getBytes());
+			dos.write(algoParam.getBytes());
 			//Verschlüsselte Dateidaten
-			fos.write(encodedData);
+			dos.write(encodedData);
 			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
