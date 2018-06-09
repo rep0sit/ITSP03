@@ -5,6 +5,5 @@
 	<classpathentry kind="lib" path="C:/Users/nelli/Downloads/UnlimitedJCEPolicyJDK7/UnlimitedJCEPolicy/local_policy.jar"/>
 	<classpathentry kind="lib" path="C:/Users/nelli/Downloads/UnlimitedJCEPolicyJDK7/UnlimitedJCEPolicy/US_export_policy.jar"/>
 	<classpathentry kind="lib" path="classes"/>
-	<classpathentry kind="lib" path="/ITSP03Bsp/classes"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
