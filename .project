@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/itsp03/RSFTest.class</name>
+			<type>1</type>
+			<location>E:/Nelli/HAW/SS18/ITS_HBN/ITSP/ITSP03/RSFTest.class</location>
+		</link>
+	</linkedResources>
 </projectDescription>

@@ -107,7 +107,6 @@ public class SSF {
 	 * @param file
 	 * @return
 	 */
-	@SuppressWarnings("deprecation")
 	public PublicKey readPubKey(String file){
 		PublicKey pubKey = null;
 //		File filePub = new File(file);	
@@ -222,20 +221,38 @@ public class SSF {
 			
 			cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
 			SecretKey secKey = generateSecretKeyForAES();
-			
-			String algoParam = secKey.getAlgorithm();
+			cipher.init(Cipher.ENCRYPT_MODE, secKey);
+//			System.out.println("CIPHER ALGO: "+cipher.getAlgorithm());
+			//ALGORITHM PARAMETERS OBject
+//			AlgorithmParameters algoParams = cipher.getParameters();
+//			System.out.println("ALGO "+algoParams.getAlgorithm());
+			byte[] algoParamBytes = cipher.getParameters().getEncoded();
+//			String algoParam = secKey.getAlgorithm();
 			
 			//Erzeugen des encodierten geheimen Schlüssels
-			byte[] encodedSecKey = encodeSecretKey(secKey, pubKey);
-			cipher.init(Cipher.ENCRYPT_MODE, secKey);
-//			byte[] encryptData = cipher.update(dataBytes);
-			byte[] encryptData = cipher.doFinal(dataBytes);
+//			byte[] encodedSecKey = encodeSecretKey(secKey, pubKey);
+			byte[] encodedSecKey = secKey.getEncoded();
+//			cipher.init(Cipher.ENCRYPT_MODE, secKey);
+			byte[] encryptData = cipher.update(dataBytes);
+			byte[] encryptRest = cipher.doFinal();
+			byte[] allEncDataBytes = concatenate(encryptData, encryptRest);
 			
 //			cipher.doFinal(encodedSecKey);
 			
 			Signature signature = Signature.getInstance("SHA512withRSA");
 			signature.initSign(privKey);
-			signature.update(encryptData);
+////			signature.update(encryptData);
+		
+			try {
+				signature.update(dataBytes);
+			} catch (SignatureException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			cipher.update(allEncDataBytes);
+			cipher.doFinal();
+			
 			signatureBytes = signature.sign();
 //			writeDataToFile(encodedFile, encodedSecKey, signatureBytes, algoParam, encryptData);
 		
@@ -248,11 +265,11 @@ public class SSF {
 			//Signatur des geheimen Schlüssels
 			dos.write(signatureBytes);
 			//Länge der algorithmischen Parameter des geheimen Schlüssels
-			dos.writeInt(algoParam.length());
+			dos.writeInt(algoParamBytes.length);
 			//Algor. Parameter des geheimen Schlüssels
-			dos.write(algoParam.getBytes());
+			dos.write(algoParamBytes);
 			//Verschlüsselte Dateidaten
-			dos.write(encryptData);
+			dos.write(allEncDataBytes);
 			
 			dos.close();
 			
@@ -284,7 +301,7 @@ public class SSF {
 			dos.write(algoParam.getBytes());
 			//Verschlüsselte Dateidaten
 			dos.write(encodedData);
-			
+			dos.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -293,5 +310,20 @@ public class SSF {
 			e.printStackTrace();
 		}
 		
+	}
+	/**
+	 * Concatenate two byte arrays
+	 */
+	private byte[] concatenate(byte[] ba1, byte[] ba2) {
+		int len1 = ba1.length;
+		int len2 = ba2.length;
+		byte[] result = new byte[len1 + len2];
+
+		// Fill with first array
+		System.arraycopy(ba1, 0, result, 0, len1);
+		// Fill with second array
+		System.arraycopy(ba2, 0, result, len1, len2);
+
+		return result;
 	}
 }
