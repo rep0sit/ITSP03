@@ -38,10 +38,12 @@ public class RSF {
 	public static void main(String[] args) {
 
 		RSF rsf = new RSF();
+		
+		// privateKeyFile, Empfaenger.prv, Sender.pub, .ssf-File, Zieldatei 
 		rsf.readDataAndDecodeData(args[0],args[1],args[2],args[3]);
 	}
 	/**
-	 * Liest einen privaten Schlüssel aus einer Datei ein.
+	 * Liest einen privaten Schlï¿½ssel aus einer Datei ein.
 	 * 
 	 * @param file
 	 * @return
@@ -56,11 +58,11 @@ public class RSF {
 		try {
 			//Lesen des privaten RSA-Keys
 			DataInputStream dis = new DataInputStream(new FileInputStream(file));
-			//Länge des InhaberNamens
+			//Lï¿½nge des InhaberNamens
 			int len = dis.readInt();
 			inhaberBytes = new byte[len];
 			dis.read(inhaberBytes);
-			//Key-Länge
+			//Key-Lï¿½nge
 			len = dis.readInt();
 			privKeyBytes = new byte[len];
 			dis.read(privKeyBytes);
@@ -77,7 +79,7 @@ public class RSF {
 		return privKey;
 	}
 	/**
-	 * Liest einen öffentlichen Schlüssel aus einer Datei ein.
+	 * Liest einen ï¿½ffentlichen Schlï¿½ssel aus einer Datei ein.
 	 * 
 	 * @param file
 	 * @return
@@ -91,12 +93,12 @@ public class RSF {
 		try {
 			DataInputStream dis = new DataInputStream(new FileInputStream(file));
 			
-			//Länge des InhaberNamens
+			//Lï¿½nge des InhaberNamens
 			int len = dis.readInt();
 			//InhaberBytes
 			inhaberBytes = new byte[len];
 			dis.read(inhaberBytes);
-			//Länge des Keys
+			//Lï¿½nge des Keys
 			len = dis.readInt();			
 			//Key-Bytes
 			keyPubBytes = new byte[len];
