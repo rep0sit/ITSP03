@@ -179,14 +179,15 @@ public class RSF {
 			boolean ok = signature.verify(signatureBytes);
 			if(ok){
 				System.out.println("Signatur verifiziert!");
+				//Write decoded data into file
+				DataOutputStream dos = new DataOutputStream(new FileOutputStream(new File(decodedFile)));
+				dos.write(allDecData);
+				dos.close();
 			}else{
 				System.out.println("Signatur nicht erfolgreich verifiziert");
 			}
 			
-			//Write decoded data into file
-			DataOutputStream dos = new DataOutputStream(new FileOutputStream(new File(decodedFile)));
-			dos.write(allDecData);
-			dos.close();
+			
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
