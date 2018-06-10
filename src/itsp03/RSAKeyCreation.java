@@ -15,7 +15,7 @@ import java.security.PublicKey;
 
 /**
  * 
- * Ein Programm für das Erstellen eines Schlüsselpaares mit der Schlüssellänge 2048 Bit.
+ * Ein Programm fï¿½r das Erstellen eines Schlï¿½sselpaares mit der Schlï¿½ssellï¿½nge 2048 Bit.
  * 
  * @author Nelli Welker, Etienne Onasch
  *
@@ -50,7 +50,7 @@ public class RSAKeyCreation {
 		FileOutputStream out = new FileOutputStream(genFile);
 		out.write(inhaber.getBytes());
         out.write(String.valueOf(inhaber.length()).getBytes());
-        out.write("LängeSchlüssel".getBytes());
+        out.write("Lï¿½ngeSchlï¿½ssel".getBytes());
         out.flush();
         out.close();
         System.out.println("done");
