@@ -65,6 +65,8 @@ local.properties
 ### Java ###
 # Compiled class file
 *.class
+# DO NOT IGNORE FOLLOWING CLASS FILE
+!RSFTestJava8.class
 
 # Log file
 *.log
