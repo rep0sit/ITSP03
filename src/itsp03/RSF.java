@@ -213,34 +213,34 @@ public class RSF {
 			e.printStackTrace();
 		}
 	}
-
-	private byte[] decryptSecKey(byte[] secKeyBytes, PrivateKey privKey) {
-		//Cipher Objekt zur Entschluesselung
-		Cipher cipher = null;
-		byte[] decryptedSecKey = null;
-		try {
-			cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
-						//Entschluesselung der Daten
-			cipher.init(Cipher.DECRYPT_MODE, privKey);
-			decryptedSecKey = cipher.doFinal(secKeyBytes);
-		} catch (NoSuchAlgorithmException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (NoSuchPaddingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return decryptedSecKey;
-	}
+//
+//	private byte[] decryptSecKey(byte[] secKeyBytes, PrivateKey privKey) {
+//		//Cipher Objekt zur Entschluesselung
+//		Cipher cipher = null;
+//		byte[] decryptedSecKey = null;
+//		try {
+//			cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
+//						//Entschluesselung der Daten
+//			cipher.init(Cipher.DECRYPT_MODE, privKey);
+//			decryptedSecKey = cipher.doFinal(secKeyBytes);
+//		} catch (NoSuchAlgorithmException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (NoSuchPaddingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (InvalidKeyException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IllegalBlockSizeException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (BadPaddingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return decryptedSecKey;
+//	}
 	/**
 	 * Concatenate two byte arrays
 	 */

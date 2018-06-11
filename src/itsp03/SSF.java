@@ -222,6 +222,8 @@ public class SSF {
 			cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
 			SecretKey secKey = generateSecretKeyForAES();
 			cipher.init(Cipher.ENCRYPT_MODE, secKey);
+			
+			
 //			System.out.println("CIPHER ALGO: "+cipher.getAlgorithm());
 			//ALGORITHM PARAMETERS OBject
 //			AlgorithmParameters algoParams = cipher.getParameters();
@@ -231,11 +233,19 @@ public class SSF {
 			
 			//Erzeugen des encodierten geheimen Schl�ssels
 //			byte[] encodedSecKey = encodeSecretKey(secKey, pubKey);
-			byte[] encodedSecKey = secKey.getEncoded();
+			
+			Cipher encrypt = Cipher.getInstance("RSA");
+			encrypt.init(Cipher.WRAP_MODE, pubKey);
+			byte[] encodedSecKey = encrypt.wrap(secKey);
+			
+			//byte[] encodedSecKey = secKey.getEncoded();
 //			cipher.init(Cipher.ENCRYPT_MODE, secKey);
-			byte[] encryptData = cipher.update(dataBytes);
-			byte[] encryptRest = cipher.doFinal();
-			byte[] allEncDataBytes = concatenate(encryptData, encryptRest);
+			cipher.update(dataBytes);
+			
+			byte[] encryptData = cipher.doFinal();
+			
+//			byte[] encryptRest = cipher.doFinal();
+//			byte[] allEncDataBytes = concatenate(encryptData, encryptRest);
 			
 //			cipher.doFinal(encodedSecKey);
 			
@@ -245,14 +255,14 @@ public class SSF {
 		
 			try {
 				//signature.update(dataBytes);
-				signature.update(encodedSecKey);
+				signature.update(secKey.getEncoded());
 			} catch (SignatureException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			cipher.update(allEncDataBytes);
-			cipher.doFinal();
+//			cipher.update(allEncDataBytes);
+			
 			
 			signatureBytes = signature.sign();
 //			writeDataToFile(encodedFile, encodedSecKey, signatureBytes, algoParam, encryptData);
@@ -270,7 +280,7 @@ public class SSF {
 			//Algor. Parameter des geheimen Schl�ssels
 			dos.write(algoParamBytes);
 			//Verschl�sselte Dateidaten
-			dos.write(allEncDataBytes);
+			dos.write(encryptData);
 			
 			dos.close();
 			
