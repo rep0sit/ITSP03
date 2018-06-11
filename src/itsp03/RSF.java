@@ -16,9 +16,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -136,14 +138,23 @@ public class RSF {
 			byte[] secKeyBytes = new byte[len];
 			dis.read(secKeyBytes);
 			count += len;
+			System.out.println();
+			System.out.println("Laenge des geheimen Schluessels: " + len);
+			System.out.println("Geheimer Schluessel Bytes:\n" + Arrays.toString(secKeyBytes));
+			System.out.println();			
 			//Einlesen der Signatur
 			len = dis.readInt();
 			byte[] signatureBytes = new byte[len];
 			count += len;
 			dis.read(signatureBytes);
+			
+			System.out.println("Laenge der Signatur: " + len);
+			System.out.println("Signatur Bytes:\n" + Arrays.toString(signatureBytes));
+			System.out.println();
 			//Einlesen der algorithm. Parameter
 			len = dis.readInt();
 			count += len;
+			
 			byte[] algoParamBytes = new byte[len];
 			dis.read(algoParamBytes);
 			
@@ -161,10 +172,15 @@ public class RSF {
 			
 			AlgorithmParameters algoParams = AlgorithmParameters.getInstance("AES");
 			algoParams.init(algoParamBytes);
-			System.out.println("ALGOPARAM: "+new String(algoParamBytes));
+			
+		
+			//System.out.println("ALGOPARAM: "+ new String(algoParamBytes));
+			
+			System.out.println("ALGORITHM_PARAMETERS: " + algoParams.getAlgorithm());
 			
 			//Cipher Objekt zur Entschluesselung
 			Cipher cipher = Cipher.getInstance("AES/CTR/PKCS5Padding");
+			
 			cipher.init(Cipher.DECRYPT_MODE, skspec, algoParams);
 			
 //			Entschluesselung der Daten
@@ -175,7 +191,10 @@ public class RSF {
 //			Signatur verifizieren
 			Signature signature = Signature.getInstance("SHA512withRSA");
 			signature.initVerify(pubKey);
-			signature.update(encodedDataBytes); //nur eingelesene databytes (ohne cipher)
+			
+			//signature.update(encodedDataBytes); //nur eingelesene databytes (ohne cipher)
+			signature.update(secKeyBytes);
+			//boolean ok = signature.verify(secKeyBytes);
 			boolean ok = signature.verify(signatureBytes);
 			if(ok){
 				System.out.println("Signatur verifiziert!");

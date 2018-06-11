@@ -32,7 +32,7 @@ import javax.crypto.SecretKey;
 
 /**
  * 
- *  Erzeugen, Signieren und Verschlüsseln eines geheimen Sitzungsschlüssels und Verschlüsseln
+ *  Erzeugen, Signieren und Verschlï¿½sseln eines geheimen Sitzungsschlï¿½ssels und Verschlï¿½sseln
  *	einer Dokumentendatei (Sender) 
  *
  * @author Nelli Welker, Etienne Onasch
@@ -62,7 +62,7 @@ public class SSF {
 	    return new String(Files.readAllBytes(Paths.get(fis.getPath())));
 	}
 	/**
-	 * Liest einen privaten Schlüssel aus einer Datei ein.
+	 * Liest einen privaten Schlï¿½ssel aus einer Datei ein.
 	 * 
 	 * @param file
 	 * @return
@@ -79,11 +79,11 @@ public class SSF {
 			//Lesen des privaten RSA-Keys
 			
 			DataInputStream dis = new DataInputStream(new FileInputStream(file));
-			//Länge des InhaberNamens
+			//Lï¿½nge des InhaberNamens
 			int len = dis.readInt();
 			inhaberBytes = new byte[len];
 			dis.read(inhaberBytes);
-			//Key-Länge
+			//Key-Lï¿½nge
 			len = dis.readInt();
 			privKeyBytes = new byte[len];
 			dis.read(privKeyBytes);
@@ -102,7 +102,7 @@ public class SSF {
 		return privKey;
 	}
 	/**
-	 * Liest einen öffentlichen Schlüssel aus einer Datei ein.
+	 * Liest einen ï¿½ffentlichen Schlï¿½ssel aus einer Datei ein.
 	 * 
 	 * @param file
 	 * @return
@@ -117,12 +117,12 @@ public class SSF {
 		try {
 			DataInputStream dis = new DataInputStream(new FileInputStream(file));
 			
-			//Länge des InhaberNamens
+			//Lï¿½nge des InhaberNamens
 			int len = dis.readInt();
 			//InhaberBytes
 			inhaberBytes = new byte[len];
 			dis.read(inhaberBytes);
-			//Länge des Keys
+			//Lï¿½nge des Keys
 			len = dis.readInt();			
 			//Key-Bytes
 			keyPubBytes = new byte[len];
@@ -141,7 +141,7 @@ public class SSF {
 	}
 	/**
 	 * 
-	 * Erzeugt einen geheimen Schlüssel für den AES-Algorithmus mit Key-Länge 256-Bit.
+	 * Erzeugt einen geheimen Schlï¿½ssel fï¿½r den AES-Algorithmus mit Key-Lï¿½nge 256-Bit.
 	 *
 	 * @return
 	 */
@@ -158,15 +158,15 @@ public class SSF {
 		return secKey;		
 	}
 	/**
-	 * Erzeugt eine Signatur für den geheimen Schlüssel aus generateKeyForAES()
-	 * mit dem privaten RSA-Schlüssel.
+	 * Erzeugt eine Signatur fï¿½r den geheimen Schlï¿½ssel aus generateKeyForAES()
+	 * mit dem privaten RSA-Schlï¿½ssel.
 	 * Algorithmus: SHA512withRSA
 	 * 
 	 * @return
 	 * @throws SignatureException 
 	 */
 	public Signature generateSignature(PrivateKey key) throws SignatureException{
-//		privaten RSA_Schlüssel
+//		privaten RSA_Schlï¿½ssel
 		Signature sign = null;
 		try {
 			sign = Signature.getInstance("SHA512withRSA");
@@ -178,8 +178,8 @@ public class SSF {
 		return sign;
 	}
 	/**
-	 * Verschlüsselung des geheimen Schlüssels (aus generateKeyForAES)
-	 * mit dem öffentlichen RSA-Schlüssels (Algorithmus RSA)
+	 * Verschlï¿½sselung des geheimen Schlï¿½ssels (aus generateKeyForAES)
+	 * mit dem ï¿½ffentlichen RSA-Schlï¿½ssels (Algorithmus RSA)
 	 * 
 	 * @return
 	 */
@@ -229,7 +229,7 @@ public class SSF {
 			byte[] algoParamBytes = cipher.getParameters().getEncoded();
 //			String algoParam = secKey.getAlgorithm();
 			
-			//Erzeugen des encodierten geheimen Schlüssels
+			//Erzeugen des encodierten geheimen Schlï¿½ssels
 //			byte[] encodedSecKey = encodeSecretKey(secKey, pubKey);
 			byte[] encodedSecKey = secKey.getEncoded();
 //			cipher.init(Cipher.ENCRYPT_MODE, secKey);
@@ -244,7 +244,8 @@ public class SSF {
 ////			signature.update(encryptData);
 		
 			try {
-				signature.update(dataBytes);
+				//signature.update(dataBytes);
+				signature.update(encodedSecKey);
 			} catch (SignatureException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -258,17 +259,17 @@ public class SSF {
 		
 			DataOutputStream dos = new DataOutputStream(new FileOutputStream(resultFile));
 			dos.writeInt(encodedSecKey.length);
-			//Verschlüsselter geheimer Schlüssel
+			//Verschlï¿½sselter geheimer Schlï¿½ssel
 			dos.write(encodedSecKey);
-			//Länge der SIgnatur des geheimen Schlüssels
+			//Lï¿½nge der SIgnatur des geheimen Schlï¿½ssels
 			dos.writeInt(signatureBytes.length);
-			//Signatur des geheimen Schlüssels
+			//Signatur des geheimen Schlï¿½ssels
 			dos.write(signatureBytes);
-			//Länge der algorithmischen Parameter des geheimen Schlüssels
+			//Lï¿½nge der algorithmischen Parameter des geheimen Schlï¿½ssels
 			dos.writeInt(algoParamBytes.length);
-			//Algor. Parameter des geheimen Schlüssels
+			//Algor. Parameter des geheimen Schlï¿½ssels
 			dos.write(algoParamBytes);
-			//Verschlüsselte Dateidaten
+			//Verschlï¿½sselte Dateidaten
 			dos.write(allEncDataBytes);
 			
 			dos.close();
@@ -285,32 +286,32 @@ public class SSF {
 		
 	}
 
-	private void writeDataToFile(File resultFile, byte[] encodedSecKey,byte[] signature, String algoParam, byte[] encodedData) {
-		try {
-			DataOutputStream dos = new DataOutputStream(new FileOutputStream(resultFile));
-			dos.writeInt(encodedSecKey.length);
-			//Verschlüsselter geheimer Schlüssel
-			dos.write(encodedSecKey);
-			//Länge der SIgnatur des geheimen Schlüssels
-			dos.writeInt(signature.length);
-			//Signatur des geheimen Schlüssels
-			dos.write(signature);
-			//Länge der algorithmischen Parameter des geheimen Schlüssels
-			dos.writeInt(algoParam.length());
-			//Algor. Parameter des geheimen Schlüssels
-			dos.write(algoParam.getBytes());
-			//Verschlüsselte Dateidaten
-			dos.write(encodedData);
-			dos.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
+//	private void writeDataToFile(File resultFile, byte[] encodedSecKey,byte[] signature, String algoParam, byte[] encodedData) {
+//		try {
+//			DataOutputStream dos = new DataOutputStream(new FileOutputStream(resultFile));
+//			dos.writeInt(encodedSecKey.length);
+//			//Verschlï¿½sselter geheimer Schlï¿½ssel
+//			dos.write(encodedSecKey);
+//			//Lï¿½nge der SIgnatur des geheimen Schlï¿½ssels
+//			dos.writeInt(signature.length);
+//			//Signatur des geheimen Schlï¿½ssels
+//			dos.write(signature);
+//			//Lï¿½nge der algorithmischen Parameter des geheimen Schlï¿½ssels
+//			dos.writeInt(algoParam.length());
+//			//Algor. Parameter des geheimen Schlï¿½ssels
+//			dos.write(algoParam.getBytes());
+//			//Verschlï¿½sselte Dateidaten
+//			dos.write(encodedData);
+//			dos.close();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//	}
 	/**
 	 * Concatenate two byte arrays
 	 */
